@@ -41,7 +41,7 @@ The platform operates as a fully containerized ecosystem comprising five isolate
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/Kautuk-Adarsh/shadow-mesh.git](https://github.com/Kautuk-Adarsh/shadow-mesh.git)
+   git clone [https://github.com/Kautuk-Adarsh/shadow-mesh.git]
    cd shadow-mesh
 2. **Configure Environment Variables:**
     Create a .env file in the root directory and add your API credentials:
