@@ -1,0 +1,75 @@
+services:
+  # --- INFRASTRUCTURE LAYER ---
+  kafka:
+    image: apache/kafka:latest
+    container_name: shadow-kafka
+    ports:
+      - "9092:9092" 
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@shadow-kafka:9093
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,INTERNAL://0.0.0.0:9094'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092,INTERNAL://shadow-kafka:9094'
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      CLUSTER_ID: "ShadowMeshCluster123" 
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+  redis:
+    image: redis:alpine
+    container_name: shadow-redis
+    ports:
+      - "6379:6379"
+
+  cockroachdb:
+    image: cockroachdb/cockroach:latest
+    container_name: shadow-cockroachdb
+    command: start-single-node --insecure
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    volumes:
+      - roach-data:/cockroach/cockroach-data
+
+  # --- BACKEND MICROSERVICES ---
+  api-gateway:
+    build: ./SHADOW-MESH-BACKEND/services/api-gateway
+    container_name: shadow-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://root@shadow-cockroachdb:26257/defaultdb?sslmode=disable
+      - REDIS_URL=redis://shadow-redis:6379
+    depends_on:
+      - cockroachdb
+      - redis
+
+  analytics-worker:
+    build: ./SHADOW-MESH-BACKEND/services/analytics-worker
+    container_name: shadow-analytics-worker
+    environment:
+      - DATABASE_URL=postgresql://root@shadow-cockroachdb:26257/defaultdb?sslmode=disable
+      - GEMINI_API_KEY=${GEMINI_API_KEY} 
+      - KAFKA_BROKER=shadow-kafka:9094
+    depends_on:
+      - kafka
+      - cockroachdb
+
+  # --- FRONTEND COMMAND CENTER ---
+  frontend-dashboard:
+    build: ./SHADOW-MESH-DASHBOARD
+    container_name: shadow-frontend
+    ports:
+      - "3001:3000" 
+    depends_on:
+      - api-gateway
+
+volumes:
+  roach-data:
+  kafka-data:

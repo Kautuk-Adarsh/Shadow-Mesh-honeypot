@@ -1,0 +1,48 @@
+# =========================
+# 🛑 SECRETS & CREDENTIALS
+# =========================
+.env
+.env.*
+*.pem
+*.key
+honeypot_key*
+
+# =========================
+# 📦 NODE.JS & NEXT.JS
+# =========================
+node_modules/
+.next/
+out/
+build/
+.vercel/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# 🐹 GO SENSOR BINARIES
+# =========================
+sensors/ssh-sensor/ssh-sensor
+sensors/ssh-sensor/ssh-sensor.exe
+*.exe
+*.o
+*.a
+
+# =========================
+# 🗄️ DATABASES & CACHE
+# =========================
+cockroach-data/
+kafka-data/
+redis-data/
+*.sql
+*.sqlite
+
+# =========================
+# 🍎 OS FILES & EDITORS
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
